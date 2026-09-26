@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../services/lan_client.dart';
 import '../widgets/app_shell.dart';
@@ -17,6 +17,8 @@ class MobilePairScreen extends StatefulWidget {
 }
 
 class _MobilePairScreenState extends State<MobilePairScreen> {
+  static const MethodChannel _localNetworkChannel =
+      MethodChannel('lanbridge05/local_network');
   final MobileScannerController _scannerController = MobileScannerController(
     formats: const <BarcodeFormat>[BarcodeFormat.qrCode],
   );
@@ -46,8 +48,11 @@ class _MobilePairScreenState extends State<MobilePairScreen> {
     LanClient? client;
     try {
       if (Platform.isAndroid) {
-        final status = await Permission.accessLocalNetwork.request();
-        if (!status.isGranted) {
+        final granted = await _localNetworkChannel.invokeMethod<bool>(
+              'requestLocalNetwork',
+            ) ??
+            false;
+        if (!granted) {
           throw const FileSystemException(
             'Local network permission is required to connect to the PC.',
           );
