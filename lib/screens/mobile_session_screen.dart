@@ -47,11 +47,8 @@ class _MobileSessionScreenState extends State<MobileSessionScreen> {
   Future<void> _pickAndSendFile() async {
     if (_uploadProgress != null) return;
 
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: false,
-      withData: false,
-    );
-    final path = result?.files.single.path;
+    final picked = await FilePicker.pickFile();
+    final path = picked?.path;
     if (path == null) return;
 
     final file = File(path);
@@ -61,7 +58,7 @@ class _MobileSessionScreenState extends State<MobileSessionScreen> {
       return;
     }
 
-    final name = result!.files.single.name;
+    final name = picked!.name;
     setState(() {
       _uploadName = name;
       _uploadProgress = 0;
