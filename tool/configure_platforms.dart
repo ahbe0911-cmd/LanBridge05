@@ -19,7 +19,7 @@ Future<void> _configureAndroid() async {
   for (final permission in permissions) {
     final line = '<uses-permission android:name="$permission" />';
     if (!text.contains(permission)) {
-      text = text.replaceFirst(
+      text = text.replaceFirstMapped(
         RegExp(r'<manifest[^>]*>'),
         (match) => '${match.group(0)}\n    $line',
       );
