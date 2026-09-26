@@ -1,0 +1,99 @@
+name: Build LanBridge 05
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android platform
+        run: |
+          flutter create --platforms=android --org com.lanbridge --project-name lanbridge05 .
+          git checkout -- lib pubspec.yaml analysis_options.yaml
+          rm -rf test
+          dart run tool/configure_platforms.dart
+          flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LanBridge05-Android
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  windows:
+    name: Windows x64
+    runs-on: windows-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Generate Windows platform
+        shell: pwsh
+        run: |
+          flutter create --platforms=windows --org com.lanbridge --project-name lanbridge05 .
+          git checkout -- lib pubspec.yaml analysis_options.yaml
+          if (Test-Path test) { Remove-Item -Recurse -Force test }
+          dart run tool/configure_platforms.dart
+          flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Build Windows release
+        run: flutter build windows --release
+
+      - name: Package portable build
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath artifacts\LanBridge05-Windows-x64.zip
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LanBridge05-Windows-x64
+          path: artifacts/LanBridge05-Windows-x64.zip
+          if-no-files-found: error
