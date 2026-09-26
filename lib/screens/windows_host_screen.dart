@@ -191,7 +191,7 @@ class _WindowsHostScreenState extends State<WindowsHostScreen> {
           const SizedBox(height: 20),
           if (_addresses.length > 1)
             DropdownButtonFormField<String>(
-              value: _selectedAddress,
+              initialValue: _selectedAddress,
               dropdownColor: const Color(0xFF17243E),
               decoration: const InputDecoration(labelText: 'Network address'),
               items: _addresses
@@ -302,7 +302,7 @@ class _WindowsHostScreenState extends State<WindowsHostScreen> {
                   )
                 : ListView.separated(
                     itemCount: _receivedFiles.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    separatorBuilder: (_, _) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
                       final file = _receivedFiles[index];
                       return Container(
